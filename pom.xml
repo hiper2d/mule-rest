@@ -59,7 +59,7 @@
 		</plugins>
 	</build>
 
-	<!-- Mule Dependencies -->
+	<!-- Spring Dependencies -->
 	<dependencies>
 		<dependency>
 		    <groupId>org.springframework</groupId>
@@ -87,6 +87,8 @@
 		    <artifactId>spring-data-jpa</artifactId>
 		    <version>1.9.0.RELEASE</version>
 		</dependency>
+		
+		<!-- Hibernate Dependencies -->
 		<dependency>
 		    <groupId>org.hibernate</groupId>
 		    <artifactId>hibernate-entitymanager</artifactId>
@@ -97,12 +99,13 @@
 		    <artifactId>hibernate-java8</artifactId>
 		    <version>${hibernate.version}</version>
 		</dependency>
+		
+		<!-- Database Dependencies -->
 		<dependency>
 	        <groupId>com.zaxxer</groupId>
 	        <artifactId>HikariCP</artifactId>
 	        <version>2.6.2</version>
 	    </dependency>
-	    
 		<dependency>
 		    <groupId>mysql</groupId>
 		    <artifactId>mysql-connector-java</artifactId>
@@ -116,6 +119,7 @@
 			<version>${mule.version}</version>
 			<scope>provided</scope>
 		</dependency>
+		
 		<!-- Mule Transports -->
 		<dependency>
 			<groupId>org.mule.transports</groupId>
@@ -147,6 +151,7 @@
 			<version>${mule.version}</version>
 			<scope>provided</scope>
 		</dependency>
+		
 		<!-- Mule Modules -->
 		<dependency>
 			<groupId>org.mule.modules</groupId>
@@ -160,6 +165,7 @@
 			<version>${mule.version}</version>
 			<scope>provided</scope>
 		</dependency>
+		
 		<!-- for testing -->
 		<dependency>
 			<groupId>org.mule.tests</groupId>
@@ -167,13 +173,13 @@
 			<version>${mule.version}</version>
 			<scope>test</scope>
 		</dependency>
-	<dependency>
+		<dependency>
             <groupId>org.mule.modules</groupId>
             <artifactId>mule-module-http</artifactId>
             <version>${mule.version}</version>
             <scope>provided</scope>
         </dependency>
-    <dependency>
+    	<dependency>
             <groupId>org.mule.modules</groupId>
             <artifactId>mule-module-json</artifactId>
             <version>${mule.version}</version>

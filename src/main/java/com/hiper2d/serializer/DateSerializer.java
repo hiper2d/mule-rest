@@ -9,7 +9,7 @@ import org.codehaus.jackson.JsonProcessingException;
 import org.codehaus.jackson.map.JsonSerializer;
 import org.codehaus.jackson.map.SerializerProvider;
 
-public class JsonDateSerializer extends JsonSerializer<LocalDateTime> {
+public class DateSerializer extends JsonSerializer<LocalDateTime> {
 
 	private static final DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm");;
 
@@ -18,6 +18,4 @@ public class JsonDateSerializer extends JsonSerializer<LocalDateTime> {
 		String formattedDate = formatter.format(date);
 		gen.writeString(formattedDate);
 	}
-
-	
 }

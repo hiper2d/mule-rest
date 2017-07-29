@@ -10,7 +10,7 @@ import javax.persistence.Table;
 
 import org.codehaus.jackson.map.annotate.JsonSerialize;
 
-import com.hiper2d.serializer.JsonDateSerializer;
+import com.hiper2d.serializer.DateSerializer;
 
 @Entity
 @IdClass(FlightPk.class)
@@ -23,7 +23,7 @@ public class Flight extends BaseEntity {
 	
 	@Id
 	@Column(name = "Departure_Date")
-	@JsonSerialize(using = JsonDateSerializer.class)
+	@JsonSerialize(using = DateSerializer.class)
 	private LocalDateTime depatureDate;
 
 	public String getFlightCode() {

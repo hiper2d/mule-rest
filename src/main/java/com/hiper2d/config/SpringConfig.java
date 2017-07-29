@@ -6,7 +6,7 @@ import org.springframework.context.annotation.Import;
 import java.text.SimpleDateFormat;
 
 import com.hiper2d.serializer.DateSerializerModule;
-import com.hiper2d.serializer.JsonDateSerializer;
+import com.hiper2d.serializer.DateSerializer;
 import com.hiper2d.util.*;
 
 import org.codehaus.jackson.map.ObjectMapper;

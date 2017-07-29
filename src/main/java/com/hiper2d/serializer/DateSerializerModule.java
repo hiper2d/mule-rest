@@ -9,6 +9,6 @@ public class DateSerializerModule extends SimpleModule {
 
 	public DateSerializerModule() {
 		super("DateSerializerModule", new Version(1, 0, 0, "SNAPSHOT"));
-	    addSerializer(LocalDateTime.class, new JsonDateSerializer());
+	    addSerializer(LocalDateTime.class, new DateSerializer());
 	}
 }

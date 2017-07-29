@@ -17,8 +17,7 @@ http://www.mulesoft.org/schema/mule/json http://www.mulesoft.org/schema/mule/jso
     <http:listener-config name="HTTP_Listener_Configuration" host="localhost" port="8081" doc:name="HTTP Listener Configuration"/>
     <flow name="mule-rest-testFlow">
         <http:listener config-ref="HTTP_Listener_Configuration" path="/echo" allowedMethods="GET" doc:name="HTTP"/>
-        <set-payload value="&quot;Hey&quot;" doc:name="Set Payload"/>
-        <invoke name="Invoke" object-ref="flightService" method="getAllFlights"/>
+        <invoke name="GetFlights" object-ref="flightService" method="getAllFlights"/>
         <json:object-to-json-transformer doc:name="Object to JSON" mapper-ref="jacksonObjectMapper"></json:object-to-json-transformer>
         <echo-component doc:name="Echo"/>
     </flow>
