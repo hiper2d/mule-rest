@@ -17,7 +17,7 @@ import org.springframework.context.annotation.ComponentScan;
 
 @Configuration
 @Import({JpaConfig.class})
-@ComponentScan(basePackages = {Packages.SERVICES})
+@ComponentScan(basePackages = {Packages.SERVICES, Packages.UTILS})
 public class SpringConfig {
 	
 	@Bean

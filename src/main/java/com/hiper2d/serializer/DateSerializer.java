@@ -11,7 +11,8 @@ import org.codehaus.jackson.map.SerializerProvider;
 
 public class DateSerializer extends JsonSerializer<LocalDateTime> {
 
-	private static final DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm");;
+	public static final DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm");
+	public static final DateTimeFormatter formatter_short = DateTimeFormatter.ofPattern("yyyy-M-d");
 
 	@Override
 	public void serialize(LocalDateTime date, JsonGenerator gen, SerializerProvider provider) throws IOException, JsonProcessingException {

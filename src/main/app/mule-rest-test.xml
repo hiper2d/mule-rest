@@ -16,9 +16,23 @@ http://www.mulesoft.org/schema/mule/json http://www.mulesoft.org/schema/mule/jso
 
     <http:listener-config name="HTTP_Listener_Configuration" host="localhost" port="8081" doc:name="HTTP Listener Configuration"/>
     <flow name="mule-rest-testFlow">
-        <http:listener config-ref="HTTP_Listener_Configuration" path="/echo" allowedMethods="GET" doc:name="HTTP"/>
-        <invoke name="GetFlights" object-ref="flightService" method="getAllFlights"/>
-        <json:object-to-json-transformer doc:name="Object to JSON" mapper-ref="jacksonObjectMapper"></json:object-to-json-transformer>
+        <http:listener config-ref="HTTP_Listener_Configuration" path="/flights" allowedMethods="GET" doc:name="Get Flights">
+            <http:error-response-builder reasonPhrase="#[payload]"/>
+        </http:listener>
+        <set-variable variableName="date" value="#[message.inboundProperties.'http.query.params'.date]" doc:name="Set Date"/>
+        <choice doc:name="Validate Date">
+            <when expression="#[flowVars.date == null]">
+                <invoke name="GetAllFlights" object-ref="flightService" method="getAllFlights"/>
+            </when>
+            <when expression="#[app.registry.stringDateParser.validateString(flowVars.date)]">
+                <set-variable variableName="localDate" value="#[app.registry.stringDateParser.parseStringToLocalDate(flowVars.date)]" doc:name="Convert String Date to LocalDate"/>
+                <invoke name="GetFlights" object-ref="flightService" method="getFlights" methodArguments="#[flowVars.localDate]"/>
+            </when>
+            <otherwise>
+                <set-payload value="{'error': 'Date parameter #[flowVars.date] is invalid.'}" doc:name="Set Payload"/>
+            </otherwise>
+        </choice>
+        <json:object-to-json-transformer mapper-ref="jacksonObjectMapper" doc:name="Object to JSON"/>
         <echo-component doc:name="Echo"/>
     </flow>
 </mule>
