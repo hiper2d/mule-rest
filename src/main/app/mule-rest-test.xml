@@ -32,7 +32,25 @@ http://www.mulesoft.org/schema/mule/json http://www.mulesoft.org/schema/mule/jso
                 <set-payload value="{'error': 'Date parameter #[flowVars.date] is invalid.'}" doc:name="Set Payload"/>
             </otherwise>
         </choice>
-        <json:object-to-json-transformer mapper-ref="jacksonObjectMapper" doc:name="Object to JSON"/>
-        <echo-component doc:name="Echo"/>
+        <json:object-to-json-transformer doc:name="Object to JSON"/>
+    </flow>
+    <flow name="mule-rest-testFlow1">
+        <http:listener config-ref="HTTP_Listener_Configuration" path="/destinations" allowedMethods="GET" doc:name="Get Destinations"/>
+        <set-variable variableName="airlineId" value="#[message.inboundProperties.'http.query.params'.airlineId]" doc:name="Set Airline Id"/>
+        <set-variable variableName="airline" value="#[message.inboundProperties.'http.query.params'.airline]" doc:name="Set Airline Name"/>
+        <set-variable variableName="page" value="#[message.inboundProperties.'http.query.params'.page]" doc:name="Set Page"/>
+        <choice doc:name="Validate Airline Id">
+        	<when expression="#[flowVars.airlineId != null]">
+                <invoke name="getDestinationsByAirlineId" object-ref="routeService" method="getDestinationsByAirlineId" methodArguments="#[flowVars.airlineId],#[flowVars.page]"/>
+            </when>
+            <when expression="#[flowVars.airline != null]">
+                <invoke name="GetDestinationsByAirlineName" object-ref="routeService" method="getDestinationsByAirlineName" methodArguments="#[flowVars.airline],#[flowVars.page]"/>
+            </when>
+            <otherwise>
+                <set-payload value="{'error': 'Please provide airline name or id.'}" doc:name="Set Payload"/>
+            </otherwise>
+        </choice>
+        
+        <json:object-to-json-transformer doc:name="Object to JSON"/>
     </flow>
 </mule>

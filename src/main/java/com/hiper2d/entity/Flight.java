@@ -6,6 +6,9 @@ import javax.persistence.Column;
 import javax.persistence.Entity;
 import javax.persistence.Id;
 import javax.persistence.IdClass;
+import javax.persistence.JoinColumn;
+import javax.persistence.ManyToOne;
+import javax.persistence.OneToOne;
 import javax.persistence.Table;
 
 import org.codehaus.jackson.map.annotate.JsonSerialize;
@@ -25,6 +28,27 @@ public class Flight extends BaseEntity {
 	@Column(name = "Departure_Date")
 	@JsonSerialize(using = DateSerializer.class)
 	private LocalDateTime depatureDate;
+	
+	/* todo: Airline table is denormalized, return here later
+	@OneToOne
+	@JoinColumn(name = "Airline_Name", referencedColumnName = "Name", insertable = false, updatable = false)*/
+	@Column(name = "Airline_Name")
+	private String airlineName;
+	
+	@Column(name = "Departure_Airport")
+	private String departureAirport;
+	
+	@Column(name = "Destination_Airport")
+	private String destinationAirport;
+	
+	@Column(name = "Aircraft_Type")
+	private String aircraftType;
+	
+	@Column(name = "Seat_Availability")
+	private int seatAvailability;
+	
+	@Column(name = "Price")
+	private Double price;
 
 	public String getFlightCode() {
 		return flightCode;
@@ -40,5 +64,53 @@ public class Flight extends BaseEntity {
 
 	public void setDepatureDate(LocalDateTime depatureDate) {
 		this.depatureDate = depatureDate;
+	}
+
+	public String getAirlineName() {
+		return airlineName;
+	}
+
+	public void setAirlineName(String airlineName) {
+		this.airlineName = airlineName;
+	}
+
+	public String getDepartureAirport() {
+		return departureAirport;
+	}
+
+	public void setDepartureAirport(String departureAirport) {
+		this.departureAirport = departureAirport;
+	}
+
+	public String getDestinationAirport() {
+		return destinationAirport;
+	}
+
+	public void setDestinationAirport(String destinationAirport) {
+		this.destinationAirport = destinationAirport;
+	}
+
+	public String getAircraftType() {
+		return aircraftType;
+	}
+
+	public void setAircraftType(String aircraftType) {
+		this.aircraftType = aircraftType;
+	}
+
+	public int getSeatAvailability() {
+		return seatAvailability;
+	}
+
+	public void setSeatAvailability(int seatAvailability) {
+		this.seatAvailability = seatAvailability;
+	}
+
+	public Double getPrice() {
+		return price;
+	}
+
+	public void setPrice(Double price) {
+		this.price = price;
 	}
 }

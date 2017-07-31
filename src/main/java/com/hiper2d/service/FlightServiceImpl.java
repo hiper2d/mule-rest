@@ -8,9 +8,12 @@ import java.util.List;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Propagation;
+import org.springframework.transaction.annotation.Transactional;
 
 import com.hiper2d.entity.Flight;
 import com.hiper2d.repository.FlightRepository;
+import com.hiper2d.repository.RouteRepository;
 
 @Service("flightService")
 public class FlightServiceImpl extends BaseService implements FlightService {
