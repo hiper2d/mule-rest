@@ -8,4 +8,5 @@ import com.hiper2d.entity.Flight;
 public interface FlightService {
 	List<Flight> getAllFlights();
 	List<Flight> getFlights(LocalDate date);
+	boolean bookSeat(String flightCode);
 }

@@ -36,4 +36,11 @@ public class FlightServiceImpl extends BaseService implements FlightService {
 		LocalDateTime endingOfDay = date.atStartOfDay().plusDays(1).minusSeconds(1);
 		return flightRepository.findByDepatureDateBetween(beginningOfDay, endingOfDay);
 	}
+	
+	@Override
+	@Transactional
+	public boolean bookSeat(String flightCode) {
+		int updated = flightRepository.setSeatAvailability(flightCode);
+		return updated > 0;
+	}
 }

@@ -15,7 +15,7 @@ http://www.mulesoft.org/schema/mule/json http://www.mulesoft.org/schema/mule/jso
 	</spring:beans>
 
     <http:listener-config name="HTTP_Listener_Configuration" host="localhost" port="8081" doc:name="HTTP Listener Configuration"/>
-    <flow name="mule-rest-testFlow">
+    <flow name="get-flights-flow">
         <http:listener config-ref="HTTP_Listener_Configuration" path="/flights" allowedMethods="GET" doc:name="Get Flights">
             <http:error-response-builder reasonPhrase="#[payload]"/>
         </http:listener>
@@ -34,7 +34,7 @@ http://www.mulesoft.org/schema/mule/json http://www.mulesoft.org/schema/mule/jso
         </choice>
         <json:object-to-json-transformer doc:name="Object to JSON"/>
     </flow>
-    <flow name="mule-rest-testFlow1">
+    <flow name="get-destinations-flow">
         <http:listener config-ref="HTTP_Listener_Configuration" path="/destinations" allowedMethods="GET" doc:name="Get Destinations"/>
         <set-variable variableName="airlineId" value="#[message.inboundProperties.'http.query.params'.airlineId]" doc:name="Set Airline Id"/>
         <set-variable variableName="airline" value="#[message.inboundProperties.'http.query.params'.airline]" doc:name="Set Airline Name"/>
@@ -51,6 +51,20 @@ http://www.mulesoft.org/schema/mule/json http://www.mulesoft.org/schema/mule/jso
             </otherwise>
         </choice>
         
+        <json:object-to-json-transformer doc:name="Object to JSON"/>
+    </flow>
+    <flow name="book-ticket-flow">
+        <http:listener config-ref="HTTP_Listener_Configuration" path="/flights" allowedMethods="PUT" doc:name="Boot Seat"/>
+        <set-variable variableName="flightCode" value="#[message.inboundProperties.'http.query.params'.flightCode]" doc:name="Set Flight Code"/>
+        <invoke name="BookSeat" object-ref="flightService" method="bookSeat" methodArguments="#[flowVars.flightCode]"/>
+        <choice doc:name="Choice">
+        	<when expression="#[payload]">
+                <set-payload value="{'status': 'SUCCESS', 'message': 'Reservation is completed.'}" doc:name="Set Payload"/>
+            </when>
+            <otherwise>
+                <set-payload value="{'status': 'FAIL', 'message': 'There are no available seats, sorry.'}" doc:name="Set Payload"/>
+            </otherwise>
+        </choice>
         <json:object-to-json-transformer doc:name="Object to JSON"/>
     </flow>
 </mule>

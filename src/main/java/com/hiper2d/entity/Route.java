@@ -10,7 +10,10 @@ import javax.persistence.OneToOne;
 import javax.persistence.PrimaryKeyJoinColumn;
 import javax.persistence.Table;
 
+import org.hibernate.annotations.Immutable;
+
 @Entity
+@Immutable
 @IdClass(RoutePk.class)
 @Table(name = "routes")
 public class Route extends BaseEntity {
