@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
-<mule xmlns:json="http://www.mulesoft.org/schema/mule/json" xmlns:context="http://www.springframework.org/schema/context"
+<mule xmlns:scripting="http://www.mulesoft.org/schema/mule/scripting" xmlns:json="http://www.mulesoft.org/schema/mule/json" xmlns:context="http://www.springframework.org/schema/context"
 	xmlns:http="http://www.mulesoft.org/schema/mule/http" xmlns="http://www.mulesoft.org/schema/mule/core" xmlns:doc="http://www.mulesoft.org/schema/mule/documentation"
 	xmlns:spring="http://www.springframework.org/schema/beans" 
 	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
@@ -8,7 +8,8 @@
 http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans-current.xsd
 http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/current/mule.xsd
 http://www.mulesoft.org/schema/mule/http http://www.mulesoft.org/schema/mule/http/current/mule-http.xsd
-http://www.mulesoft.org/schema/mule/json http://www.mulesoft.org/schema/mule/json/current/mule-json.xsd">
+http://www.mulesoft.org/schema/mule/json http://www.mulesoft.org/schema/mule/json/current/mule-json.xsd
+http://www.mulesoft.org/schema/mule/scripting http://www.mulesoft.org/schema/mule/scripting/current/mule-scripting.xsd">
 	
 	<spring:beans>
 		<spring:bean class="com.hiper2d.config.SpringConfig"></spring:bean>
@@ -29,16 +30,33 @@ http://www.mulesoft.org/schema/mule/json http://www.mulesoft.org/schema/mule/jso
                 <invoke name="GetFlights" object-ref="flightService" method="getFlights" methodArguments="#[flowVars.localDate]"/>
             </when>
             <otherwise>
-                <set-payload value="{'error': 'Date parameter #[flowVars.date] is invalid.'}" doc:name="Set Payload"/>
+                <scripting:component doc:name="Throw Exception">
+                    <scripting:script engine="Groovy"><![CDATA[throw new IllegalArgumentException('Date parameter \'' + message.getInvocationProperty('date') + '\' is invalid.')]]></scripting:script>
+                </scripting:component>
             </otherwise>
         </choice>
         <json:object-to-json-transformer doc:name="Object to JSON"/>
+        <exception-strategy ref="GlobalExceptionHandler" doc:name="Reference Exception Strategy"/>
     </flow>
+    
     <flow name="get-destinations-flow">
         <http:listener config-ref="HTTP_Listener_Configuration" path="/destinations" allowedMethods="GET" doc:name="Get Destinations"/>
         <set-variable variableName="airlineId" value="#[message.inboundProperties.'http.query.params'.airlineId]" doc:name="Set Airline Id"/>
         <set-variable variableName="airline" value="#[message.inboundProperties.'http.query.params'.airline]" doc:name="Set Airline Name"/>
-        <set-variable variableName="page" value="#[message.inboundProperties.'http.query.params'.page]" doc:name="Set Page"/>
+        <set-variable variableName="pageRaw" value="#[message.inboundProperties.'http.query.params'.page]" doc:name="Set Raw Page"/>
+        <choice doc:name="Validate page">
+        	<when expression="#[flowVars.pageRaw == null]">
+                <set-variable variableName="page" value="0" doc:name="Set Page to 0"/>
+            </when>
+            <when expression="#[flowVars.pageRaw.matches('[0-9]*')]">
+                <set-variable variableName="page" value="#[message.inboundProperties.'http.query.params'.page]" doc:name="Set Page"/>
+            </when>
+            <otherwise>
+                <scripting:component doc:name="Throw Exception">
+                    <scripting:script engine="Groovy"><![CDATA[throw new IllegalArgumentException('The page parameter \'' + message.getInvocationProperty('pageRaw') + '\' is invalid. Please provide a number.')]]></scripting:script>
+                </scripting:component>
+            </otherwise>
+        </choice>
         <choice doc:name="Validate Airline Id">
         	<when expression="#[flowVars.airlineId != null]">
                 <invoke name="getDestinationsByAirlineId" object-ref="routeService" method="getDestinationsByAirlineId" methodArguments="#[flowVars.airlineId],#[flowVars.page]"/>
@@ -47,12 +65,16 @@ http://www.mulesoft.org/schema/mule/json http://www.mulesoft.org/schema/mule/jso
                 <invoke name="GetDestinationsByAirlineName" object-ref="routeService" method="getDestinationsByAirlineName" methodArguments="#[flowVars.airline],#[flowVars.page]"/>
             </when>
             <otherwise>
-                <set-payload value="{'error': 'Please provide airline name or id.'}" doc:name="Set Payload"/>
+                <scripting:component doc:name="Throw Exception">
+                    <scripting:script engine="Groovy"><![CDATA[throw new IllegalArgumentException('Please provide airline name or id.')]]></scripting:script>
+                </scripting:component>
             </otherwise>
         </choice>
         
         <json:object-to-json-transformer doc:name="Object to JSON"/>
+        <exception-strategy ref="GlobalExceptionHandler" doc:name="Reference Exception Strategy"/>
     </flow>
+    
     <flow name="book-ticket-flow">
         <http:listener config-ref="HTTP_Listener_Configuration" path="/flights" allowedMethods="PUT" doc:name="Boot Seat"/>
         <set-variable variableName="flightCode" value="#[message.inboundProperties.'http.query.params'.flightCode]" doc:name="Set Flight Code"/>
@@ -62,12 +84,16 @@ http://www.mulesoft.org/schema/mule/json http://www.mulesoft.org/schema/mule/jso
                 <set-payload value="{'status': 'SUCCESS', 'message': 'Reservation is completed.'}" doc:name="Set Payload"/>
             </when>
             <otherwise>
-                <set-payload value="{'status': 'FAIL', 'message': 'There are no available seats, sorry.'}" doc:name="Set Payload"/>
+                <scripting:component doc:name="Throw Exception">
+                    <scripting:script engine="Groovy"><![CDATA[throw new IllegalArgumentException('There are no available seats, sorry.')]]></scripting:script>
+                </scripting:component>
             </otherwise>
         </choice>
         <json:object-to-json-transformer doc:name="Object to JSON"/>
+        <exception-strategy ref="GlobalExceptionHandler" doc:name="Reference Exception Strategy"/>
     </flow>
-    <flow name="change-price">
+    
+    <flow name="change-price-flow">
         <http:listener config-ref="HTTP_Listener_Configuration" path="/flights/price" allowedMethods="PUT" doc:name="Change Price"/>
         <set-variable variableName="flightCode" value="#[message.inboundProperties.'http.query.params'.flightCode]" doc:name="Set Flight Code"/>
         <set-variable variableName="delta" value="#[message.inboundProperties.'http.query.params'.delta]" doc:name="Set Delta"/>
@@ -77,9 +103,25 @@ http://www.mulesoft.org/schema/mule/json http://www.mulesoft.org/schema/mule/jso
                 <set-payload value="{'status': 'SUCCESS', 'message': 'Price was changed.'}" doc:name="Set Payload"/>
             </when>
             <otherwise>
-                <set-payload value="{'status': 'FAIL', 'message': 'The total price cannot be negative, sorry.'}" doc:name="Set Payload"/>
+                <scripting:component doc:name="Throw Exception">
+                    <scripting:script engine="Groovy"><![CDATA[throw new IllegalArgumentException('The total price cannot be negative, sorry.')]]></scripting:script>
+                </scripting:component>
             </otherwise>
         </choice>
         <json:object-to-json-transformer doc:name="Object to JSON"/>
+        <exception-strategy ref="GlobalExceptionHandler" doc:name="Reference Exception Strategy"/>
     </flow>
+    
+    <flow name="register-new-flight-flow">
+        <http:listener config-ref="HTTP_Listener_Configuration" path="/flights" allowedMethods="POST" doc:name="Create New Flight"/>
+        <json:json-to-object-transformer returnClass="com.hiper2d.entity.Flight" doc:name="JSON to Object"/>
+        <invoke name="CreateFlight" object-ref="flightService" method="createFlight" methodArguments="#[payload]"/>
+        <json:object-to-json-transformer doc:name="Object to JSON"/>
+        <exception-strategy ref="GlobalExceptionHandler" doc:name="Reference Exception Strategy"/>
+    </flow>
+    
+    <catch-exception-strategy name="GlobalExceptionHandler">
+        <set-payload value="{&quot;error&quot;: &quot;#[exception.?cause.message or exception]&quot;}" doc:name="Set Error Payload"/>
+        <set-property propertyName="http.status" value="500" doc:name="Set Status 500"/>
+    </catch-exception-strategy>
 </mule>

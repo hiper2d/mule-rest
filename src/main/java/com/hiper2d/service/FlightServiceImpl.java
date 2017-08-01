@@ -11,6 +11,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 
+import com.hiper2d.dto.RouteDto;
 import com.hiper2d.entity.Flight;
 import com.hiper2d.repository.FlightRepository;
 import com.hiper2d.repository.RouteRepository;
@@ -53,6 +54,12 @@ public class FlightServiceImpl extends BaseService implements FlightService {
 			return updatePriceIfPossible(flightCode, delta);
 		}
 		return true;
+	}
+
+	@Override
+	@Transactional(readOnly = false)
+	public Flight createFlight(Flight flight) {
+		return flightRepository.save(flight);
 	}
 	
 	private boolean updatePriceIfPossible(String flightCode, Double delta) {

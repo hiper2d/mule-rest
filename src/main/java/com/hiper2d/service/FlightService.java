@@ -3,6 +3,7 @@ package com.hiper2d.service;
 import java.time.LocalDate;
 import java.util.List;
 
+import com.hiper2d.dto.RouteDto;
 import com.hiper2d.entity.Flight;
 
 public interface FlightService {
@@ -10,4 +11,5 @@ public interface FlightService {
 	List<Flight> getFlights(LocalDate date);
 	boolean bookSeat(String flightCode);
 	boolean changePrice(String flightCode, Double delta);
+	Flight createFlight(Flight flight); 
 }
