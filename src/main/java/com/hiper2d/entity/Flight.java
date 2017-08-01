@@ -28,10 +28,7 @@ public class Flight extends BaseEntity {
 	@Column(name = "Departure_Date")
 	@JsonSerialize(using = DateSerializer.class)
 	private LocalDateTime depatureDate;
-	
-	/* todo: Airline table is denormalized, return here later
-	@OneToOne
-	@JoinColumn(name = "Airline_Name", referencedColumnName = "Name", insertable = false, updatable = false)*/
+
 	@Column(name = "Airline_Name")
 	private String airlineName;
 	

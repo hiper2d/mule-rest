@@ -9,4 +9,5 @@ public interface FlightService {
 	List<Flight> getAllFlights();
 	List<Flight> getFlights(LocalDate date);
 	boolean bookSeat(String flightCode);
+	boolean changePrice(String flightCode, Double delta);
 }

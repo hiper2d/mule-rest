@@ -38,9 +38,30 @@ public class FlightServiceImpl extends BaseService implements FlightService {
 	}
 	
 	@Override
-	@Transactional
+	@Transactional(readOnly = false)
 	public boolean bookSeat(String flightCode) {
 		int updated = flightRepository.setSeatAvailability(flightCode);
 		return updated > 0;
+	}
+
+	@Override
+	@Transactional(readOnly = false)
+	public boolean changePrice(String flightCode, Double delta) {
+		if (delta > 0) {
+			flightRepository.setPrice(flightCode, delta);
+		} else if (delta < 0) {
+			return updatePriceIfPossible(flightCode, delta);
+		}
+		return true;
+	}
+	
+	private boolean updatePriceIfPossible(String flightCode, Double delta) {
+		Flight flight = flightRepository.findByFlightCode(flightCode);
+		if (flight.getPrice() + delta >= 0) {
+			flightRepository.setPrice(flightCode, delta);
+			return true;
+		} else {
+			return false;
+		}
 	}
 }

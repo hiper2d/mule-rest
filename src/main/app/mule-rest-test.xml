@@ -57,12 +57,27 @@ http://www.mulesoft.org/schema/mule/json http://www.mulesoft.org/schema/mule/jso
         <http:listener config-ref="HTTP_Listener_Configuration" path="/flights" allowedMethods="PUT" doc:name="Boot Seat"/>
         <set-variable variableName="flightCode" value="#[message.inboundProperties.'http.query.params'.flightCode]" doc:name="Set Flight Code"/>
         <invoke name="BookSeat" object-ref="flightService" method="bookSeat" methodArguments="#[flowVars.flightCode]"/>
-        <choice doc:name="Choice">
+        <choice doc:name="Validate Booking Result">
         	<when expression="#[payload]">
                 <set-payload value="{'status': 'SUCCESS', 'message': 'Reservation is completed.'}" doc:name="Set Payload"/>
             </when>
             <otherwise>
                 <set-payload value="{'status': 'FAIL', 'message': 'There are no available seats, sorry.'}" doc:name="Set Payload"/>
+            </otherwise>
+        </choice>
+        <json:object-to-json-transformer doc:name="Object to JSON"/>
+    </flow>
+    <flow name="change-price">
+        <http:listener config-ref="HTTP_Listener_Configuration" path="/flights/price" allowedMethods="PUT" doc:name="Change Price"/>
+        <set-variable variableName="flightCode" value="#[message.inboundProperties.'http.query.params'.flightCode]" doc:name="Set Flight Code"/>
+        <set-variable variableName="delta" value="#[message.inboundProperties.'http.query.params'.delta]" doc:name="Set Delta"/>
+        <invoke name="ChangePrice" object-ref="flightService" method="changePrice" methodArguments="#[flowVars.flightCode],#[flowVars.delta]"/>
+        <choice doc:name="Choice">
+        	<when expression="#[payload]">
+                <set-payload value="{'status': 'SUCCESS', 'message': 'Price was changed.'}" doc:name="Set Payload"/>
+            </when>
+            <otherwise>
+                <set-payload value="{'status': 'FAIL', 'message': 'The total price cannot be negative, sorry.'}" doc:name="Set Payload"/>
             </otherwise>
         </choice>
         <json:object-to-json-transformer doc:name="Object to JSON"/>
