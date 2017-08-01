@@ -44,12 +44,12 @@ http://www.mulesoft.org/schema/mule/scripting http://www.mulesoft.org/schema/mul
         <set-variable variableName="airlineId" value="#[message.inboundProperties.'http.query.params'.airlineId]" doc:name="Set Airline Id"/>
         <set-variable variableName="airline" value="#[message.inboundProperties.'http.query.params'.airline]" doc:name="Set Airline Name"/>
         <set-variable variableName="pageRaw" value="#[message.inboundProperties.'http.query.params'.page]" doc:name="Set Raw Page"/>
-        <choice doc:name="Validate page">
+        <choice doc:name="Validate Page">
         	<when expression="#[flowVars.pageRaw == null]">
                 <set-variable variableName="page" value="0" doc:name="Set Page to 0"/>
             </when>
             <when expression="#[flowVars.pageRaw.matches('[0-9]*')]">
-                <set-variable variableName="page" value="#[message.inboundProperties.'http.query.params'.page]" doc:name="Set Page"/>
+                <set-variable variableName="page" value="#[flowVars.pageRaw]" doc:name="Set Page"/>
             </when>
             <otherwise>
                 <scripting:component doc:name="Throw Exception">
@@ -76,9 +76,19 @@ http://www.mulesoft.org/schema/mule/scripting http://www.mulesoft.org/schema/mul
     </flow>
     
     <flow name="book-ticket-flow">
-        <http:listener config-ref="HTTP_Listener_Configuration" path="/flights" allowedMethods="PUT" doc:name="Boot Seat"/>
-        <set-variable variableName="flightCode" value="#[message.inboundProperties.'http.query.params'.flightCode]" doc:name="Set Flight Code"/>
-        <invoke name="BookSeat" object-ref="flightService" method="bookSeat" methodArguments="#[flowVars.flightCode]"/>
+        <http:listener config-ref="HTTP_Listener_Configuration" path="/flights/seat" allowedMethods="PUT" doc:name="Boot Seat"/>
+        <json:json-to-object-transformer returnClass="com.hiper2d.entity.Flight" doc:name="JSON to Object"/>
+        <choice doc:name="Check if Flight Already Exists">
+        	<when expression="#[app.registry.flightService.checkIfFlightExists(payload)]">
+                <set-variable variableName="flight" value="#[payload]" doc:name="Set Flight"/>
+            </when>
+            <otherwise>
+                <scripting:component doc:name="Throw Exception">
+                    <scripting:script engine="Groovy"><![CDATA[throw new IllegalArgumentException('Flights with this code and depature date does not exists.')]]></scripting:script>
+                </scripting:component>
+            </otherwise>
+        </choice>
+        <invoke name="BookSeat" object-ref="flightService" method="bookSeat" methodArguments="#[flowVars.flight]"/>
         <choice doc:name="Validate Booking Result">
         	<when expression="#[payload]">
                 <set-payload value="{'status': 'SUCCESS', 'message': 'Reservation is completed.'}" doc:name="Set Payload"/>
@@ -95,9 +105,29 @@ http://www.mulesoft.org/schema/mule/scripting http://www.mulesoft.org/schema/mul
     
     <flow name="change-price-flow">
         <http:listener config-ref="HTTP_Listener_Configuration" path="/flights/price" allowedMethods="PUT" doc:name="Change Price"/>
-        <set-variable variableName="flightCode" value="#[message.inboundProperties.'http.query.params'.flightCode]" doc:name="Set Flight Code"/>
-        <set-variable variableName="delta" value="#[message.inboundProperties.'http.query.params'.delta]" doc:name="Set Delta"/>
-        <invoke name="ChangePrice" object-ref="flightService" method="changePrice" methodArguments="#[flowVars.flightCode],#[flowVars.delta]"/>
+        <json:json-to-object-transformer returnClass="com.hiper2d.entity.Flight" doc:name="JSON to Object"/>
+        <choice doc:name="Check if Flight Already Exists">
+        	<when expression="#[app.registry.flightService.checkIfFlightExists(payload)]">
+                <set-variable variableName="flight" value="#[payload]" doc:name="Set Flight"/>
+            </when>
+            <otherwise>
+                <scripting:component doc:name="Throw Exception">
+                    <scripting:script engine="Groovy"><![CDATA[throw new IllegalArgumentException('Flights with this code and depature date does not exist.')]]></scripting:script>
+                </scripting:component>
+            </otherwise>
+        </choice>
+        <set-variable variableName="deltaRaw" value="#[message.inboundProperties.'http.query.params'.delta]" doc:name="Set Raw Delta"/>
+        <choice doc:name="Validate Delta">
+            <when expression="#[flowVars.deltaRaw.matches('[0-9]*')]">
+                <set-variable variableName="delta" value="#[flowVars.deltaRaw]" doc:name="Set Delta"/>
+            </when>
+            <otherwise>
+                <scripting:component doc:name="Throw Exception">
+                    <scripting:script engine="Groovy"><![CDATA[throw new IllegalArgumentException('The delta parameter \'' + message.getInvocationProperty('deltaRaw') + '\' is invalid. Please provide a number.')]]></scripting:script>
+                </scripting:component>
+            </otherwise>
+        </choice>
+        <invoke name="ChangePrice" object-ref="flightService" method="changePrice" methodArguments="#[flowVars.flight],#[flowVars.delta]"/>
         <choice doc:name="Choice">
         	<when expression="#[payload]">
                 <set-payload value="{'status': 'SUCCESS', 'message': 'Price was changed.'}" doc:name="Set Payload"/>
