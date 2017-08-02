@@ -8,17 +8,12 @@ import com.hiper2d.serializer.DateSerializer;
 
 @Component
 public class StringDateParser {
-	public boolean validateString(String stringDate) throws Exception {
-		try {
-			parseStringToLocalDate(stringDate);
-		} catch (RuntimeException ex) {
-			// todo: should be replaced with normal error handling on Mule side
-			return false;
-		}
-		return true;
-	}
-	
 	public LocalDate parseStringToLocalDate(String stringDate) {
-		return LocalDate.parse(stringDate, DateSerializer.formatter_short);
+		try {
+			return LocalDate.parse(stringDate, DateSerializer.formatter_short);
+		} catch (RuntimeException ex) {
+			throw new IllegalArgumentException(
+					"Provided parameter '" + stringDate + "' cannot be parsed to a Date. Please provide the parameter in 'yyyy-M-d' format");
+		}
 	}
 }

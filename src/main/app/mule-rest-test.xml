@@ -25,14 +25,9 @@ http://www.mulesoft.org/schema/mule/scripting http://www.mulesoft.org/schema/mul
             <when expression="#[flowVars.date == null]">
                 <invoke name="GetAllFlights" object-ref="flightService" method="getAllFlights"/>
             </when>
-            <when expression="#[app.registry.stringDateParser.validateString(flowVars.date)]">
-                <set-variable variableName="localDate" value="#[app.registry.stringDateParser.parseStringToLocalDate(flowVars.date)]" doc:name="Convert String Date to LocalDate"/>
-                <invoke name="GetFlights" object-ref="flightService" method="getFlights" methodArguments="#[flowVars.localDate]"/>
-            </when>
             <otherwise>
-                <scripting:component doc:name="Throw Exception">
-                    <scripting:script engine="Groovy"><![CDATA[throw new IllegalArgumentException('Date parameter \'' + message.getInvocationProperty('date') + '\' is invalid.')]]></scripting:script>
-                </scripting:component>
+            	<invoke name="ParseStringToDate" object-ref="stringDateParser" method="parseStringToLocalDate" methodArguments="#[flowVars.date]"/>
+                <invoke name="GetFlights" object-ref="flightService" method="getFlights" methodArguments="#[payload]"/>
             </otherwise>
         </choice>
         <json:object-to-json-transformer doc:name="Object to JSON"/>
@@ -118,7 +113,7 @@ http://www.mulesoft.org/schema/mule/scripting http://www.mulesoft.org/schema/mul
         </choice>
         <set-variable variableName="deltaRaw" value="#[message.inboundProperties.'http.query.params'.delta]" doc:name="Set Raw Delta"/>
         <choice doc:name="Validate Delta">
-            <when expression="#[flowVars.deltaRaw.matches('[0-9]*')]">
+            <when expression="#[flowVars.deltaRaw.matches('^-?[0-9]*')]">
                 <set-variable variableName="delta" value="#[flowVars.deltaRaw]" doc:name="Set Delta"/>
             </when>
             <otherwise>
